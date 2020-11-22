@@ -4,9 +4,9 @@ from bs4 import BeautifulSoup as soup
 import pandas as pd
 import datetime as dt
 
-# # Path to chromedriver (macOS users only)
-# executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
-# browser = Browser('chrome', **executable_path)
+# Path to chromedriver (macOS users only)
+executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
+browser = Browser('chrome', **executable_path)
 
 def scrape_all():
     # Initiate headless driver for deployment
@@ -115,21 +115,28 @@ def hemispheres(browser):
     hemisphere_image_urls = []
 
     # 3. Write code to retrieve the image urls and titles for each hemisphere.
-    links_found = browser.find_by_css('.itemLink').links.find_by_partial_href('/search/map/Mars/Viking/')
-    for i in range(len(links_found)):
-        if i%2 ==1:
-            new_links_found = browser.find_by_css('.itemLink').links.find_by_partial_href('/search/map/Mars/Viking/')
-            new_links_found[i].click()
-            hemispheres = {}
-            url=browser.links.find_by_text('Sample').first["href"]
-            title=browser.find_by_css('.title').text
-            hemispheres[title]=url
-            hemisphere_image_urls.append(hemispheres)
-            browser.back()
-    print(hemisphere_image_urls)
+    links = browser.find_by_css('a.product-item h3')
 
-# 4. Print the list that holds the dictionary of each image url and title.
-# hemisphere_image_urls
+    for i in range(len(links)):
+        #Create dictionary of hemisphere to hold titles and string
+        hemisphere = {}
+        #Click on each hemisphere link
+        browser.find_by_css('a.product-item h3')[i].click()
+        #Navigate to the full-resolution image page
+        sample_element = browser.links.find_by_text('Sample').first
+        #Retrieve the full-resolution image URL string 
+        hemisphere['img_url'] = sample_element['href']
+        #Retrieve the full-resolution title
+        hemisphere['title'] = browser.find_by_css('h2.title').text
+        #Append hemisphere object to list
+        hemisphere_image_urls.append(hemisphere)
+        #navigate back
+        browser.back()
 
-# If running as script, print scraped data
-print(scrape_all())
+    # 4. Print the list that holds the dictionary of each image url and title.
+    return hemisphere_image_urls
+
+if __name__== "__main__":
+
+    # If running as script, print scraped data
+    print(scrape_all())
